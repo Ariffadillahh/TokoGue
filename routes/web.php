@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/alamat/hapus', [AlamatController::class, 'destroy'])->name('hapusAlamat');
     Route::get('/favorite', [PavProductController::class, 'index'])->name('fav');
     Route::post('/product/detail/buy', [OrdersController::class, 'store'])->name('buy');
+    Route::post('/buy/token', [OrdersController::class, 'getSnapToken'])->name('buy.token');
     Route::get('/orders/dikemas', [OrdersController::class, 'index'])->name('ordersKemas');
     Route::get('/orders/diantar', [OrdersController::class, 'diantar'])->name('ordersDiantar');
     Route::get('/orders/selesai', [OrdersController::class, 'selesai'])->name('ordersSelesai');

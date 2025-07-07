@@ -14,11 +14,12 @@ class Orders extends Model
         'id_alamat',
         'id_user',
         'qty_orders',
-        'metode_pembayaran',
+        'status_pembayaran',
         'status_orders',
         'date_orders',
         'total_harga',
         'size',
-        'harga_product'
+        'harga_product',
+        'order_id'
     ];
 }

@@ -73,7 +73,7 @@
         <div class="mt-3 font-mono ">
             <div class="md:flex justify-between">
                 <div>
-                    <p>Metode Pembayaran : <span class="uppercase">{{ $item->metode_pembayaran }}</span></p>
+                    <p>Status Pembayaran : <span class="uppercase">{{ $item->status_pembayaran }}</span></p>
                     <p>Tanggal Orders : <span class="uppercase">{{ $item->date_orders }}</span></p>
                     <p>Tanggal Terima Pesanan : <span class="uppercase">{{ $item->waktu_nerimapesanan }}</span></p>
                 </div>

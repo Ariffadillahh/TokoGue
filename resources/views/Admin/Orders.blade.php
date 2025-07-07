@@ -88,8 +88,14 @@
                                 <div class="w-full">
                                     <div class="flex justify-between ">
                                         <h1 class="font-mono  text-base">{{ $item->name_product }}</h1>
-                                        <h1 class="font-mono  text-base mt-1 uppercase text-primary">
-                                            {{ $item->status_orders }}</h1>
+                                        <h1
+                                            class="font-mono md:text-base text-xs mt-1 uppercase
+                                            @if ($item->status_pembayaran === 'paid') text-primary
+                                            @elseif($item->status_pembayaran === 'pending') text-blue-500
+                                            @elseif(in_array($item->status_pembayaran, ['deny', 'cancel', 'expire'])) text-red-500
+                                            @else text-gray-500 @endif">
+                                            {{ $item->status_pembayaran }}
+                                        </h1>
                                     </div>
                                     <p>{{ $item->name_brand }}</p>
                                     <div class="flex justify-between ">

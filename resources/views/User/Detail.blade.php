@@ -8,6 +8,9 @@
     <link rel="shortcut icon" href="{{ asset('storage/images/logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>{{ $product->name_product }} - TokoGue</title>
+    <script type="text/javascript"
+    src="https://app.sandbox.midtrans.com/snap/snap.js"
+    data-client-key="{{ config('midtrans.client_id') }}"></script>
     <script src="{{ asset('js/script.js') }}"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -146,8 +149,7 @@
                     <div class="my-6">
                         <p class="font-mono ">Select Size</p>
 
-                        <form action={{ route('buy') }} method="post">
-                            @csrf
+                        <form id="payment-form">
                             <div class="flex gap-4 py-2 overflow-x-auto size">
                                 @if ($product->product_status == 'sold' || (Auth()->user()->level == 'admin' || Auth()->user()->level == 'superadmin'))
                                     @foreach ($size as $item)
@@ -238,9 +240,10 @@
                                                         @endforeach
                                                     </div>
                                                 </div>
-                                                <input type="hidden" name="id_product"
+                                                <input type="hidden" name="snap_token" id="snap-token">
+                                                <input type="hidden" name="id_product" id="idProduct"
                                                     value="{{ $product->id_product }}">
-                                                <input type="hidden" name="price"
+                                                <input type="hidden" name="price" id="priceTag"
                                                     value="{{ $product->total_harga !== null && $product->persen_diskon !== null ? $product->total_harga : $product->price_product }}">
 
                                                 <input type="hidden" name="pembayaran" value="cod">
@@ -280,7 +283,8 @@
                                                 @if (count($alamat) == 0)
                                                     <button class="btn btn-success w-full" disabled>Orders</button>
                                                 @else
-                                                    <button class="btn btn-success w-full ">Orders</button>
+                                                    <button class="btn btn-success w-full "
+                                                        id="pay-button">Orders</button>
                                                 @endif
                                             </div>
 
@@ -490,25 +494,98 @@
     </div>
     @include('../Components/footer')
 
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const payButton = document.getElementById('pay-button');
+    
+            if (!payButton) {
+                console.error('Pay button element not found!');
+                return;
+            }
+    
+            payButton.addEventListener('click', function(e) {
+                e.preventDefault();
+    
+                try {
+                    const sizeInput = document.querySelector('input[name="size"]:checked');
+                    const alamatInput = document.querySelector('input[name="alamat"]:checked');
+                    const qtyInput = document.getElementById('counterInput');
+                    const priceInput = document.getElementById('priceTag');
+                    const idProductInput = document.getElementById('idProduct');
+    
+                    if (!sizeInput || !alamatInput || !qtyInput || !priceInput || !idProductInput) {
+                        alert('Please fill all the required fields before proceeding.');
+                        return;
+                    }
+    
+                    const size = sizeInput.value;
+                    const alamat = alamatInput.value;
+                    const qty = qtyInput.value;
+                    const price = priceInput.value;
+                    const id_product = idProductInput.value;
+    
+                    fetch('{{ route('buy.token') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            },
+                            body: JSON.stringify({ size, alamat, qty, price, id_product }),
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to fetch Snap Token. Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (!data.snapToken) {
+                                throw new Error('Snap Token not found in the response.');
+                            }
+    
+                            const snapToken = data.snapToken;
+                            window.snap.pay(snapToken, {
+                                onSuccess: function(result) {
+                                    console.log('Payment Success:', result);
+                                    document.getElementById('snap-token').value = snapToken;
+                                    window.location.href = '/orders/dikemas';
+                                },
+                                onPending: function(result) {
+                                    console.log('Payment Pending:', result);
+                                    alert('Waiting for your payment!');
+                                },
+                                onError: function(result) {
+                                    console.error('Payment Error:', result);
+                                    alert('Payment failed! Please try again.');
+                                },
+                                onClose: function() {
+                                    alert('You closed the popup without finishing the payment.');
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while processing your payment.');
+                        });
+                } catch (error) {
+                    console.error('Unexpected Error:', error);
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        });
+    </script>
+    
 
 
     <script>
         function increase() {
-            // Mendapatkan elemen input
-
             var inputElement = document.getElementById('counterInput');
-
-            // Mendapatkan nilai saat ini dan menambahkannya
             var currentValue = parseInt(inputElement.value);
             inputElement.value = currentValue + 1;
         }
 
         function decrease() {
-            // Mendapatkan elemen input
-
             var inputElement = document.getElementById('counterInput');
-
-            // Mendapatkan nilai saat ini dan mengurangkannya, tetapi tidak kurang dari 1
             var currentValue = parseInt(inputElement.value);
             inputElement.value = Math.max(currentValue - 1, 1);
         }

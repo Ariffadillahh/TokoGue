@@ -107,7 +107,15 @@
                     <div class="">
                         <div class="md:flex justify-between">
                             <div>
-                                <p>Metode Pembayaran : <span class="uppercase">{{ $item->metode_pembayaran }}</span>
+                                <h1
+                                    class="font-mono md:text-base text-xs mt-1 uppercase
+                                    @if ($item->status_pembayaran === 'paid') text-primary
+                                    @elseif($item->status_pembayaran === 'pending') text-blue-500
+                                    @elseif(in_array($item->status_pembayaran, ['deny', 'cancel', 'expire'])) text-red-500
+                                    @else text-gray-500 @endif">
+                                    {{ $item->status_pembayaran }}
+                                </h1>
+
                                 </p>
                                 <p>Tanggal Orders : <span class="uppercase">{{ $item->date_orders }}</span></p>
                                 @if ($item->waktu_nerimapesanan)
@@ -116,7 +124,7 @@
                                     </p>
                                 @endif
                             </div>
-                            @if ($item->status_orders != 'dikemas')
+                            @if ($item->status_orders != 'prosesing')
                                 <div>
                                     <p>Jasa Pengiriman : <span class="uppercase">{{ $item->jasa_antar }}</span></p>
                                     <p>No Resi : <span class="uppercase">{{ $item->no_resi }}</span></p>
@@ -124,32 +132,34 @@
                             @else
                         </div>
 
-                        <form action={{ route('updateOrder') }} method="post">
-                            @csrf
-                            <div class="flex gap-2">
-                                <p class="text-lg">No Resi :</p>
-                                <input class="input input-bordered input-sm " type="text" name="noResi"
-                                    placeholder="NO RESI" required autocomplete="off">
-                            </div>
-                            <input type="hidden" name="id" value="{{ $item->id_orders }}">
-                            <div class="flex gap-2 mt-2">
-                                <p class="text-lg">Jasa Pengiriman : </span></p>
-                                <select class="p-1 rounded-md border" name="jasa" id="">
-                                    <option value="jne">JNE</option>
-                                    <option value="j&t">J&T</option>
-                                    <option value="anteraja">ANTERAJA</option>
-                                </select>
-                            </div>
-                            <div class="flex gap-2 mt-2">
-                                <p class="text-lg">Status Ordered :</p>
-                                <select class="p-1 rounded-md border" name="status" id="">
-                                    <option value="dikemas" selected>DIKEMAS</option>
-                                    <option value="diantar">DIANTAR</option>
+                        @if ($item->status_pembayaran === 'paid')
+                            <form action={{ route('updateOrder') }} method="post">
+                                @csrf
+                                <div class="flex gap-2">
+                                    <p class="text-lg">No Resi :</p>
+                                    <input class="input input-bordered input-sm " type="text" name="noResi"
+                                        placeholder="NO RESI" required autocomplete="off">
+                                </div>
+                                <input type="hidden" name="id" value="{{ $item->id_orders }}">
+                                <div class="flex gap-2 mt-2">
+                                    <p class="text-lg">Jasa Pengiriman : </span></p>
+                                    <select class="p-1 rounded-md border" name="jasa" id="">
+                                        <option value="jne">JNE</option>
+                                        <option value="j&t">J&T</option>
+                                        <option value="anteraja">ANTERAJA</option>
+                                    </select>
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <p class="text-lg">Status Ordered :</p>
+                                    <select class="p-1 rounded-md border" name="status" id="">
+                                        <option value="diantar">DIANTAR</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-secondary">Update</button>
+                            </form>
+                        @else
+                        @endif
 
-                                </select>
-                            </div>
-                            <button class="btn btn-secondary">Update</button>
-                        </form>
                         @endif
 
                     </div>

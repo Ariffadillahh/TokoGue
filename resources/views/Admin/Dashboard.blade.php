@@ -16,7 +16,7 @@
     @php
         $products = \App\Models\Product::all();
         $brand = \App\Models\Brand::all();
-        $order = \App\Models\Orders::where('status_orders', 'dikemas')->get();
+        $order = \App\Models\Orders::where('status_orders', 'prosesing')->get();
     @endphp
     <div class="md:flex">
         @include('./Components/sidebar')

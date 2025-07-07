@@ -106,10 +106,6 @@ class LoginController extends Controller
     public function show(request $request)
     {
 
-
-
-
-
         $pro = Product::leftJoin('diskons', function ($join) {
             $join->on('products.id_product', '=', 'diskons.id_product')
                 ->where('diskons.status', 'active');
@@ -119,7 +115,6 @@ class LoginController extends Controller
             ->get();
 
 
-        // Check apakah $pro null atau tidak
 
 
         return view(
@@ -142,8 +137,15 @@ class LoginController extends Controller
             ->join('products', 'orders.id_product', '=', 'products.id_product')
             ->join('alamats', 'orders.id_alamat', '=', 'alamats.id_alamat')
             ->select('orders.*', 'products.*', 'alamats.*')
-            ->orderBy('orders.id_orders', 'desc')
-            ->where('orders.status_orders', '=', 'dikemas')
+            ->where('orders.status_orders', '=', 'prosesing')
+            ->orderByRaw("
+        CASE 
+            WHEN orders.status_pembayaran = 'paid' THEN 1
+            WHEN orders.status_pembayaran = 'pending' THEN 2
+            WHEN orders.status_pembayaran IN ('deny', 'cancel', 'expire') THEN 3
+            ELSE 4
+        END ASC, orders.id_orders DESC
+    ")
             ->get();
 
         return view('Admin.Orders', [
@@ -194,25 +196,6 @@ class LoginController extends Controller
         ]);
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\login  $login
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, login $login)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\login  $login
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(login $login)
     {
         Auth::logout();
